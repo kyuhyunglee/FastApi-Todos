@@ -15,34 +15,99 @@
     </form>
     <script>
         async function fetchTodos() {
-            const response = await fetch('/todos');
-            const todos = await response.json();
-            const todoList = document.getElementById('todo-list');
-            todoList.innerHTML = '';
-            todos.forEach(todo => {
-                const li = document.createElement('li');
-                li.textContent = `${todo.title}: ${todo.description}`;
-                todoList.appendChild(li);
-            });
+	    try{
+	        const response = await fetch('/todos');
+            	if(!response.ok) throw new Error('Failed to fetch todos');
+		const todos = await response.json();
+                const todoList = document.getElementById('todo-list');
+                todoList.innerHTML = '';
+                todos.forEach(todo => {
+                    const li = document.createElement('li');
+		    li.innerHTML = `
+		        <span style="text-decoration: ${todo.completed ? 'line-through' : 'none'}">
+			    ${todo.title}: ${todo.description}
+			</span>
+			<button onclick="toggleTodo(${todo.id})">
+			    ${todo.completed ? 'Undo' : 'Complete'}
+			</button>
+			<button onclick="editTodo(%{todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
+			<button onclick=""deleteTodo(${todo.id})">Delete</button>
+                    `;
+                    todoList.appendChild(li);
+            	});
+	    } catch (error) {
+		    console.error('Error:', error.message);
+	    }
+        }
+	
+	async function toggleTodo(id) {
+            try {
+                const response = await fetch(`/todos/${id}/toggle`, { method: 'PATCH' });
+                if (!response.ok) throw new Error('Failed to toggle todo');
+                fetchTodos();
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
         }
 
-        document.getElementById('todo-form').addEventListener('submit', async (event) => {
+	async function deleteTodo(id) {
+            try {
+                const response = await fetch(`/todos/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Failed to delete todo');
+                fetchTodos();
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        }
+
+	async function editTodo(id, currentTitle, currentDescription) {
+            const newTitle = prompt('Edit Title:', currentTitle);
+            const newDescription = prompt('Edit Description:', currentDescription);
+            if (newTitle && newDescription) {
+                try {
+                    const response = await fetch(`/todos/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: id,
+                            title: newTitle,
+                            description: newDescription,
+                            completed: false
+                        })
+                    });
+                    if (!response.ok) throw new Error('Failed to edit todo');
+                    fetchTodos();
+                } catch (error) {
+                    console.error('Error:', error.message);
+                }
+            }
+        }
+
+	document.getElementById('todo-form').addEventListener('submit', async (event) => {
             event.preventDefault();
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
-            const response = await fetch('/todos', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ id: Date.now(), title, description, completed: false })
-            });
-            if (response.ok) {
+            try {
+                const response = await fetch('/todos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: Date.now(),
+                        title: title,
+                        description: description,
+                        completed: false
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to add todo');
                 fetchTodos();
+                document.getElementById('title').value = '';
+                document.getElementById('description').value = '';
+            } catch (error) {
+                console.error('Error:', error.message);
             }
         });
 
-        fetchTodos();
+	fetchTodos();
     </script>
 </body>
 </html>
