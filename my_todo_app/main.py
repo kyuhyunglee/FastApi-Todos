@@ -31,7 +31,8 @@ def save_todos(todos):
 # To-Do 목록 조회
 @app.get("/todos", response_model=list[TodoItem])
 def get_todos():
-    return load_todos()
+    todos = load_todos()
+    return todos
 
 # 신규 To-Do 항목 추가
 @app.post("/todos", response_model=TodoItem)
@@ -52,6 +53,16 @@ def update_todo(todo_id: int, updated_todo: TodoItem):
             return updated_todo
     raise HTTPException(status_code=404, detail="To-Do item not found")
 
+@app.patch("/todos/{todo_id}/toggle", response_model=TodoItem)
+def toggle_todo(todo_id: int):
+    todos = load_todos()
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["completed"] = not todo["completed"]
+            save_todos(todos)
+            return todo
+    raise HTTPException(status_code=404, detail="To-Do item not found")
+
 # To-Do 항목 삭제
 @app.delete("/todos/{todo_id}", response_model=dict)
 def delete_todo(todo_id: int):
@@ -63,6 +74,6 @@ def delete_todo(todo_id: int):
 # HTML 파일 서빙
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    with open("templates/index.html", "r") as file:
+    with open("templates/index.html", "r", encoding="utf-8") as file:
         content = file.read()
     return HTMLResponse(content=content)

@@ -4,21 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .box {
+            width: 45%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .todo-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        .todo-item.completed {
+            background-color: #e0ffe0;
+        }
+        button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .delete-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
 </head>
 <body>
-    <h1>To-Do List</h1>
-    <ul id="todo-list"></ul>
-    <form id="todo-form">
-        <input type="text" id="title" placeholder="Title" required>
-        <input type="text" id="description" placeholder="Description" required>
-        <button type="submit">Add To-Do</button>
-    </form>
+    <!-- 미완료된 작업 출력 박스 (왼쪽) -->
+    <div class="box">
+        <h2>Uncompleted Tasks</h2>
+        <ul id="uncompleted-list"></ul>
+        <form id="todo-form">
+            <input type="text" id="title" placeholder="Title" required />
+            <input type="text" id="description" placeholder="Description" required />
+            <button type="submit">Add To-Do</button>
+        </form>
+    </div>
+
+    <!-- 완료된 작업 출력 박스 (오른쪽) -->
+    <div class="box">
+        <h2>Completed Tasks</h2>
+        <ul id="completed-list"></ul>
+    </div>
+
     <script>
         async function fetchTodos() {
 	    try{
 	        const response = await fetch('/todos');
             	if(!response.ok) throw new Error('Failed to fetch todos');
 		const todos = await response.json();
+		renderTodos(todos);
+	    } catch (error) {
+		    console.error('Error:', error.message);
+	    }
+	}
+		    /*
                 const todoList = document.getElementById('todo-list');
                 todoList.innerHTML = '';
                 todos.forEach(todo => {
@@ -30,14 +98,47 @@
 			<button onclick="toggleTodo(${todo.id})">
 			    ${todo.completed ? 'Undo' : 'Complete'}
 			</button>
-			<button onclick="editTodo(%{todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
-			<button onclick=""deleteTodo(${todo.id})">Delete</button>
+			<button onclick="editTodo(${todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
+			<button onclick="deleteTodo(${todo.id})">Delete</button>
                     `;
                     todoList.appendChild(li);
             	});
 	    } catch (error) {
 		    console.error('Error:', error.message);
 	    }
+        }*/
+
+	function renderTodos(todos) {
+            const completedList = document.getElementById('completed-list');
+            const uncompletedList = document.getElementById('uncompleted-list');
+
+            // 기존 목록 비우기
+            completedList.innerHTML = '';
+            uncompletedList.innerHTML = '';
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = 'todo-item';
+                if (todo.completed) li.classList.add('completed');
+
+                li.innerHTML = `
+                    <span>${todo.title}: ${todo.description}</span>
+                    <div>
+                        <button onclick="toggleTodo(${todo.id})">
+                            ${todo.completed ? 'Undo' : 'Complete'}
+                        </button>
+                        <button onclick="editTodo(${todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                    </div>
+                `;
+
+                // 완료 상태에 따라 박스에 추가
+                if (todo.completed) {
+                    completedList.appendChild(li);
+                } else {
+                    uncompletedList.appendChild(li);
+                }
+            });
         }
 	
 	async function toggleTodo(id) {

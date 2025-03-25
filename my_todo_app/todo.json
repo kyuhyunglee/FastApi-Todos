@@ -6,15 +6,9 @@
         "completed": false
     },
     {
-        "id": 1742286799783,
-        "title": "\ub864\uccb4",
-        "description": "\ub864\ud1a0\uccb4\uc2a4\ud558\uc2e4\ubd84",
-        "completed": false
-    },
-    {
         "id": 1742292799993,
         "title": "\ubc30\uadf8",
         "description": "\ubc30\uadf8\ud558\uc2e4\ubd84",
-        "completed": false
+        "completed": true
     }
 ]
