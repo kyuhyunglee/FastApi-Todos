@@ -1,214 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        .box {
-            width: 45%;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            text-align: center;
-        }
-        .todo-item {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #fff;
-            transition: background-color 0.2s;
-        }
-        .todo-item.completed {
-            background-color: #e0ffe0;
-        }
-        button {
-            margin-left: 5px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .delete-btn {
-            background-color: #f44336;
-        }
-        .delete-btn:hover {
-            background-color: #e53935;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    .box {
+      width: 45%;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    .todo-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      transition: background-color 0.2s;
+    }
+    .todo-item.completed {
+      background-color: #e0ffe0;
+    }
+    .todo-item:not(.completed) {
+      cursor: move;
+    }
+    button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .delete-btn {
+      background-color: #f44336;
+    }
+    .delete-btn:hover {
+      background-color: #e53935;
+    }
+  </style>
 </head>
 <body>
-    <!-- 미완료된 작업 출력 박스 (왼쪽) -->
-    <div class="box">
-        <h2>Uncompleted Tasks</h2>
-        <ul id="uncompleted-list"></ul>
-        <form id="todo-form">
-            <input type="text" id="title" placeholder="Title" required />
-            <input type="text" id="description" placeholder="Description" required />
-            <button type="submit">Add To-Do</button>
-        </form>
-    </div>
+  <div class="box">
+    <h2>Uncompleted Tasks</h2>
+    <ul id="uncompleted-list"></ul>
+    <form id="todo-form">
+      <input type="text" id="title" placeholder="Title" required />
+      <input type="text" id="description" placeholder="Description" required />
+      <button type="submit">Add To-Do</button>
+    </form>
+  </div>
 
-    <!-- 완료된 작업 출력 박스 (오른쪽) -->
-    <div class="box">
-        <h2>Completed Tasks</h2>
-        <ul id="completed-list"></ul>
-    </div>
+  <div class="box">
+    <h2>Completed Tasks</h2>
+    <ul id="completed-list"></ul>
+  </div>
 
-    <script>
-        async function fetchTodos() {
-	    try{
-	        const response = await fetch('/todos');
-            	if(!response.ok) throw new Error('Failed to fetch todos');
-		const todos = await response.json();
-		renderTodos(todos);
-	    } catch (error) {
-		    console.error('Error:', error.message);
-	    }
-	}
-		    /*
-                const todoList = document.getElementById('todo-list');
-                todoList.innerHTML = '';
-                todos.forEach(todo => {
-                    const li = document.createElement('li');
-		    li.innerHTML = `
-		        <span style="text-decoration: ${todo.completed ? 'line-through' : 'none'}">
-			    ${todo.title}: ${todo.description}
-			</span>
-			<button onclick="toggleTodo(${todo.id})">
-			    ${todo.completed ? 'Undo' : 'Complete'}
-			</button>
-			<button onclick="editTodo(${todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
-			<button onclick="deleteTodo(${todo.id})">Delete</button>
-                    `;
-                    todoList.appendChild(li);
-            	});
-	    } catch (error) {
-		    console.error('Error:', error.message);
-	    }
-        }*/
+  <script>
+    let todosData = [];
+    let draggingItem = null;
 
-	function renderTodos(todos) {
-            const completedList = document.getElementById('completed-list');
-            const uncompletedList = document.getElementById('uncompleted-list');
-
-            // 기존 목록 비우기
-            completedList.innerHTML = '';
-            uncompletedList.innerHTML = '';
-
-            todos.forEach(todo => {
-                const li = document.createElement('li');
-                li.className = 'todo-item';
-                if (todo.completed) li.classList.add('completed');
-
-                li.innerHTML = `
-                    <span>${todo.title}: ${todo.description}</span>
-                    <div>
-                        <button onclick="toggleTodo(${todo.id})">
-                            ${todo.completed ? 'Undo' : 'Complete'}
-                        </button>
-                        <button onclick="editTodo(${todo.id}, '${todo.title}', '${todo.description}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
-                    </div>
-                `;
-
-                // 완료 상태에 따라 박스에 추가
-                if (todo.completed) {
-                    completedList.appendChild(li);
-                } else {
-                    uncompletedList.appendChild(li);
-                }
-            });
+    function isBefore(el1, el2) {
+      if (el2.parentNode === el1.parentNode) {
+        for (let cur = el1.previousSibling; cur; cur = cur.previousSibling) {
+          if (cur === el2) return true;
         }
-	
-	async function toggleTodo(id) {
-            try {
-                const response = await fetch(`/todos/${id}/toggle`, { method: 'PATCH' });
-                if (!response.ok) throw new Error('Failed to toggle todo');
-                fetchTodos();
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
-        }
+      }
+      return false;
+    }
 
-	async function deleteTodo(id) {
-            try {
-                const response = await fetch(`/todos/${id}`, { method: 'DELETE' });
-                if (!response.ok) throw new Error('Failed to delete todo');
-                fetchTodos();
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
-        }
+    function dragStart(event) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', '');
+      draggingItem = event.currentTarget;
+    }
 
-	async function editTodo(id, currentTitle, currentDescription) {
-            const newTitle = prompt('Edit Title:', currentTitle);
-            const newDescription = prompt('Edit Description:', currentDescription);
-            if (newTitle && newDescription) {
-                try {
-                    const response = await fetch(`/todos/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id: id,
-                            title: newTitle,
-                            description: newDescription,
-                            completed: false
-                        })
-                    });
-                    if (!response.ok) throw new Error('Failed to edit todo');
-                    fetchTodos();
-                } catch (error) {
-                    console.error('Error:', error.message);
-                }
-            }
+    function dragOver(event) {
+      event.preventDefault();
+      const target = event.currentTarget;
+      if (target === draggingItem) return;
+      if (isBefore(draggingItem, target)) {
+        target.parentNode.insertBefore(draggingItem, target);
+      } else {
+        target.parentNode.insertBefore(draggingItem, target.nextSibling);
+      }
+    }
+
+    async function dragEnd(event) {
+      const item = event.currentTarget;
+      const prev = item.previousSibling;
+      const next = item.nextSibling;
+      let newPriority;
+      if (prev) {
+        newPriority = next
+          ? (parseFloat(prev.dataset.priority) + parseFloat(next.dataset.priority)) / 2
+          : parseFloat(prev.dataset.priority) + 1;
+      } else {
+        newPriority = next
+          ? parseFloat(next.dataset.priority) / 2
+          : parseFloat(item.dataset.priority) || 1;
+      }
+
+      if (newPriority !== parseFloat(item.dataset.priority)) {
+        try {
+          await fetch(`/todos/${item.dataset.id}/priority`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priority: newPriority })
+          });
+        } catch (error) {
+          console.error('Priority update error:', error.message);
+        }
+      }
+      fetchTodos();
+      draggingItem = null;
+    }
+
+    async function fetchTodos() {
+      try {
+        const response = await fetch('/todos');
+        if (!response.ok) throw new Error('Failed to fetch todos');
+        todosData = await response.json();
+        renderTodos(todosData);
+      } catch (error) {
+        console.error('Fetch error:', error.message);
+      }
+    }
+
+    function renderTodos(todos) {
+      const completedList = document.getElementById('completed-list');
+      const uncompletedList = document.getElementById('uncompleted-list');
+      completedList.innerHTML = '';
+      uncompletedList.innerHTML = '';
+
+      const uncompleted = todos.filter(t => !t.completed).sort((a, b) => a.priority - b.priority);
+      const completed = todos.filter(t => t.completed);
+
+      [...uncompleted, ...completed].forEach(todo => {
+        const li = document.createElement('li');
+        li.className = 'todo-item';
+        if (todo.completed) li.classList.add('completed');
+
+        li.dataset.id = todo.id;
+        li.dataset.priority = todo.priority;
+
+        if (!todo.completed) {
+          li.setAttribute('draggable', 'true');
+          li.addEventListener('dragstart', dragStart);
+          li.addEventListener('dragover', dragOver);
+          li.addEventListener('dragend', dragEnd);
         }
 
-	document.getElementById('todo-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            try {
-                const response = await fetch('/todos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: Date.now(),
-                        title: title,
-                        description: description,
-                        completed: false
-                    })
-                });
-                if (!response.ok) throw new Error('Failed to add todo');
-                fetchTodos();
-                document.getElementById('title').value = '';
-                document.getElementById('description').value = '';
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
+        li.innerHTML = `
+          <span>${todo.title}: ${todo.description}</span>
+          <div>
+            <button onclick="toggleTodo('${todo.id}')">
+              ${todo.completed ? 'Undo' : 'Complete'}
+            </button>
+            <button onclick="editTodo('${todo.id}', '${todo.title}', '${todo.description}')">Edit</button>
+            <button class="delete-btn" onclick="deleteTodo('${todo.id}')">Delete</button>
+          </div>
+        `;
+
+        if (todo.completed) {
+          completedList.appendChild(li);
+        } else {
+          uncompletedList.appendChild(li);
+        }
+      });
+    }
+
+    async function toggleTodo(id) {
+      try {
+        const response = await fetch(`/todos/${id}/toggle`, {
+          method: 'PATCH'
         });
+        if (!response.ok) throw new Error('Failed to toggle todo');
+        fetchTodos();
+      } catch (error) {
+        console.error('Toggle error:', error.message);
+      }
+    }
 
-	fetchTodos();
-    </script>
+    async function deleteTodo(id) {
+      try {
+        const response = await fetch(`/todos/${id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete todo');
+        fetchTodos();
+      } catch (error) {
+        console.error('Delete error:', error.message);
+      }
+    }
+
+    async function editTodo(id, currentTitle, currentDescription) {
+      const newTitle = prompt('Edit Title:', currentTitle);
+      const newDescription = prompt('Edit Description:', currentDescription);
+      const todo = todosData.find(t => t.id === id);
+      if (newTitle && newDescription && todo) {
+        try {
+          const response = await fetch(`/todos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: id,
+              title: newTitle,
+              description: newDescription,
+              completed: todo.completed,
+              priority: todo.priority
+            })
+          });
+          if (!response.ok) throw new Error('Failed to edit todo');
+          fetchTodos();
+        } catch (error) {
+          console.error('Edit error:', error.message);
+        }
+      }
+    }
+
+    document.getElementById('todo-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      try {
+        const response = await fetch('/todos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            completed: false
+          })
+        });
+        if (!response.ok) throw new Error('Failed to add todo');
+        fetchTodos();
+        document.getElementById('title').value = '';
+        document.getElementById('description').value = '';
+      } catch (error) {
+        console.error('Add error:', error.message);
+      }
+    });
+
+    fetchTodos();
+  </script>
 </body>
 </html>
+
