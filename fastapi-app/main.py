@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from typing import Optional
 import uuid
 import json
 import os
@@ -20,7 +21,7 @@ class TodoCreate(BaseModel):
     title: str
     description: str
     completed: bool = False
-    priority: float | None = None
+    priority: Optional[float] = None
 
 # 우선순위 변경 모델
 class PriorityUpdate(BaseModel):
