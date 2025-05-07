@@ -4,59 +4,111 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>To-Do List</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-..."
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
   <style>
+    :root {
+      --primary: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --light: #f3f4f6;
+      --dark: #1f2937;
+    }
+
     body {
       font-family: Arial, sans-serif;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
       padding: 20px;
+      background-color: var(--light);
     }
+
     .box {
-      width: 45%;
+      flex: 1 1 400px;
+      max-width: 500px;
       padding: 20px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #f9f9f9;
-      box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      background-color: white;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
     }
+
     h2 {
       text-align: center;
+      color: var(--dark);
     }
+
     .todo-item {
       margin-bottom: 10px;
       padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #fff;
+      background-color: white;
       transition: background-color 0.2s;
     }
+
     .todo-item.completed {
-      background-color: #e0ffe0;
+      background-color: #e6f9ed;
     }
+
     .todo-item:not(.completed) {
       cursor: move;
     }
+
     button {
       margin-left: 5px;
       padding: 5px 10px;
-      background-color: #4CAF50;
+      background-color: var(--success);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.2s;
     }
+
     button:hover {
-      background-color: #45a049;
+      background-color: #059669;
     }
+
     .delete-btn {
-      background-color: #f44336;
+      background-color: var(--danger);
     }
+
     .delete-btn:hover {
-      background-color: #e53935;
+      background-color: #dc2626;
+    }
+
+    i {
+      pointer-events: none;
+    }
+
+    input {
+      padding: 8px;
+      margin: 4px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -175,10 +227,14 @@
           <span>${todo.title}: ${todo.description}</span>
           <div>
             <button onclick="toggleTodo('${todo.id}')">
-              ${todo.completed ? 'Undo' : 'Complete'}
+              <i class="fas ${todo.completed ? 'fa-rotate-left' : 'fa-check'}"></i>
             </button>
-            <button onclick="editTodo('${todo.id}', '${todo.title}', '${todo.description}')">Edit</button>
-            <button class="delete-btn" onclick="deleteTodo('${todo.id}')">Delete</button>
+            <button onclick="editTodo('${todo.id}', '${todo.title}', '${todo.description}')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-btn" onclick="deleteTodo('${todo.id}')">
+              <i class="fas fa-trash"></i>
+            </button>
           </div>
         `;
 
