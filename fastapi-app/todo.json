@@ -10,28 +10,28 @@
         "id": "5a3f4021-8f7b-4c2e-9be8-6765d7bf4ca4",
         "title": "Another Task",
         "description": "Some notes",
-        "completed": true,
-        "priority": 2.0
+        "completed": false,
+        "priority": 0.5
     },
     {
         "id": "0130d205-6e43-44f9-8222-6e9945de078b",
         "title": "what",
         "description": "should i do?",
         "completed": false,
-        "priority": 7.0
+        "priority": 1.5
     },
     {
         "id": "5f3372d9-990b-41b9-acef-37cf3137225d",
         "title": "edit",
         "description": "possible?",
-        "completed": false,
+        "completed": true,
         "priority": 8.0
     },
     {
         "id": "9fb5ccaf-d26c-4530-ad82-8ad44d2d6a6d",
         "title": "can",
         "description": "i fix it?",
-        "completed": false,
+        "completed": true,
         "priority": 9.0
     }
 ]
