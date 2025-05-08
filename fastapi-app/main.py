@@ -1,12 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 import uuid
 import json
 import os
 
 app = FastAPI()
+
+# 우선순위 엔드포인트 추가
+class PriorityUpdate(BaseModel):
+    priority: int = Field(..., ge=0, description="우선순위 값 (0 이상)")
 
 # To-Do 항목 모델
 class TodoItem(BaseModel):
@@ -115,4 +119,20 @@ def read_root():
     with open("templates/index.html", "r", encoding="utf-8") as file:
         content = file.read()
     return HTMLResponse(content=content)
+
+@app.patch("/todos/{todo_id}/priority", response_model=TodoItem)
+async def update_priority(todo_id: str, pu: PriorityUpdate):
+    # 1) 현재 저장된 리스트 불러오기
+    todos = await run_in_threadpool(load_todos)
+
+    # 2) 해당 아이템 찾기
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["priority"] = pu.priority
+            # 3) 변경된 리스트 저장
+            await run_in_threadpool(save_todos, todos)
+            return todo
+
+    # 4) 없으면 404
+    raise HTTPException(status_code=404, detail="To-Do item not found")
 

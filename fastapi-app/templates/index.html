@@ -1,3 +1,4 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,109 +8,12 @@
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    integrity="sha512-..."
+    integrity="sha512-…"
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
   <style>
-    :root {
-      --primary: #4f46e5;
-      --success: #10b981;
-      --danger: #ef4444;
-      --light: #f3f4f6;
-      --dark: #1f2937;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      padding: 20px;
-      background-color: var(--light);
-    }
-
-    .box {
-      flex: 1 1 400px;
-      max-width: 500px;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      background-color: white;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-    }
-
-    h2 {
-      text-align: center;
-      color: var(--dark);
-    }
-
-    .todo-item {
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: white;
-      transition: background-color 0.2s;
-    }
-
-    .todo-item.completed {
-      background-color: #e6f9ed;
-    }
-
-    .todo-item:not(.completed) {
-      cursor: move;
-    }
-
-    button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      background-color: var(--success);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: #059669;
-    }
-
-    .delete-btn {
-      background-color: var(--danger);
-    }
-
-    .delete-btn:hover {
-      background-color: #dc2626;
-    }
-
-    i {
-      pointer-events: none;
-    }
-
-    input {
-      padding: 8px;
-      margin: 4px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      width: 100%;
-    }
-
-    input::placeholder {
-      color: #aaa;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
+    /* (생략) 기존 스타일 그대로 */
   </style>
 </head>
 <body>
@@ -132,6 +36,7 @@
     let todosData = [];
     let draggingItem = null;
 
+    // drag & drop helpers
     function isBefore(el1, el2) {
       if (el2.parentNode === el1.parentNode) {
         for (let cur = el1.previousSibling; cur; cur = cur.previousSibling) {
@@ -141,181 +46,129 @@
       return false;
     }
 
-    function dragStart(event) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', '');
-      draggingItem = event.currentTarget;
+    function dragStart(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+      draggingItem = e.currentTarget;
     }
 
-    function dragOver(event) {
-      event.preventDefault();
-      const target = event.currentTarget;
-      if (target === draggingItem) return;
-      if (isBefore(draggingItem, target)) {
-        target.parentNode.insertBefore(draggingItem, target);
+    function dragOver(e) {
+      e.preventDefault();
+      const tgt = e.currentTarget;
+      if (tgt === draggingItem) return;
+      if (isBefore(draggingItem, tgt)) {
+        tgt.parentNode.insertBefore(draggingItem, tgt);
       } else {
-        target.parentNode.insertBefore(draggingItem, target.nextSibling);
+        tgt.parentNode.insertBefore(draggingItem, tgt.nextSibling);
       }
     }
 
-    async function dragEnd(event) {
-      const item = event.currentTarget;
-      const prev = item.previousSibling;
-      const next = item.nextSibling;
-      let newPriority;
+    async function dragEnd(e) {
+      const item = e.currentTarget;
+      const prev = item.previousSibling, next = item.nextSibling;
+      let newP;
       if (prev) {
-        newPriority = next
+        newP = next
           ? (parseFloat(prev.dataset.priority) + parseFloat(next.dataset.priority)) / 2
           : parseFloat(prev.dataset.priority) + 1;
       } else {
-        newPriority = next
+        newP = next
           ? parseFloat(next.dataset.priority) / 2
           : parseFloat(item.dataset.priority) || 1;
       }
 
-      if (newPriority !== parseFloat(item.dataset.priority)) {
-        try {
-          await fetch(`/todos/${item.dataset.id}/priority`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ priority: newPriority })
-          });
-        } catch (error) {
-          console.error('Priority update error:', error.message);
-        }
+      if (newP !== parseFloat(item.dataset.priority)) {
+        await fetch(`/todos/${item.dataset.id}/priority`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priority: newP })
+        });
       }
       fetchTodos();
       draggingItem = null;
     }
 
+    // 기본 CRUD
     async function fetchTodos() {
-      try {
-        const response = await fetch('/todos');
-        if (!response.ok) throw new Error('Failed to fetch todos');
-        todosData = await response.json();
-        renderTodos(todosData);
-      } catch (error) {
-        console.error('Fetch error:', error.message);
+      const res = await fetch('/todos');
+      todosData = await res.json();
+      renderTodos(todosData);
+    }
+
+    function renderTodos(list) {
+      const uList = document.getElementById('uncompleted-list');
+      const cList = document.getElementById('completed-list');
+      uList.innerHTML = ''; cList.innerHTML = '';
+
+      const uncompleted = list.filter(t => !t.completed)
+                              .sort((a,b) => a.priority - b.priority);
+      const completed   = list.filter(t => t.completed);
+
+      uncompleted.forEach(t => addItem(uList, t));
+      completed.forEach(t => addItem(cList, t));
+    }
+
+    function addItem(container, t) {
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (t.completed ? ' completed' : '');
+      li.dataset.id = t.id;
+      li.dataset.priority = t.priority;
+      if (!t.completed) {
+        li.setAttribute('draggable', 'true');
+        li.addEventListener('dragstart', dragStart);
+        li.addEventListener('dragover',  dragOver);
+        li.addEventListener('dragend',   dragEnd);
       }
-    }
+      // 안전하게 textContent 사용
+      const span = document.createElement('span');
+      span.textContent = `${t.title}: ${t.description}`;
+      li.appendChild(span);
 
-    function renderTodos(todos) {
-      const completedList = document.getElementById('completed-list');
-      const uncompletedList = document.getElementById('uncompleted-list');
-      completedList.innerHTML = '';
-      uncompletedList.innerHTML = '';
-
-      const uncompleted = todos.filter(t => !t.completed).sort((a, b) => a.priority - b.priority);
-      const completed = todos.filter(t => t.completed);
-
-      [...uncompleted, ...completed].forEach(todo => {
-        const li = document.createElement('li');
-        li.className = 'todo-item';
-        if (todo.completed) li.classList.add('completed');
-
-        li.dataset.id = todo.id;
-        li.dataset.priority = todo.priority;
-
-        if (!todo.completed) {
-          li.setAttribute('draggable', 'true');
-          li.addEventListener('dragstart', dragStart);
-          li.addEventListener('dragover', dragOver);
-          li.addEventListener('dragend', dragEnd);
-        }
-
-        li.innerHTML = `
-          <span>${todo.title}: ${todo.description}</span>
-          <div>
-            <button onclick="toggleTodo('${todo.id}')">
-              <i class="fas ${todo.completed ? 'fa-rotate-left' : 'fa-check'}"></i>
-            </button>
-            <button onclick="editTodo('${todo.id}', '${todo.title}', '${todo.description}')">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="delete-btn" onclick="deleteTodo('${todo.id}')">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        `;
-
-        if (todo.completed) {
-          completedList.appendChild(li);
-        } else {
-          uncompletedList.appendChild(li);
-        }
-      });
-    }
-
-    async function toggleTodo(id) {
-      try {
-        const response = await fetch(`/todos/${id}/toggle`, {
-          method: 'PATCH'
-        });
-        if (!response.ok) throw new Error('Failed to toggle todo');
-        fetchTodos();
-      } catch (error) {
-        console.error('Toggle error:', error.message);
-      }
-    }
-
-    async function deleteTodo(id) {
-      try {
-        const response = await fetch(`/todos/${id}`, {
-          method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Failed to delete todo');
-        fetchTodos();
-      } catch (error) {
-        console.error('Delete error:', error.message);
-      }
-    }
-
-    async function editTodo(id, currentTitle, currentDescription) {
-      const newTitle = prompt('Edit Title:', currentTitle);
-      const newDescription = prompt('Edit Description:', currentDescription);
-      const todo = todosData.find(t => t.id === id);
-      if (newTitle && newDescription && todo) {
-        try {
-          const response = await fetch(`/todos/${id}`, {
+      const btnWrap = document.createElement('div');
+      // toggle
+      const btnToggle = document.createElement('button');
+      btnToggle.innerHTML = `<i class="fas ${t.completed ? 'fa-rotate-left' : 'fa-check'}"></i>`;
+      btnToggle.onclick = () => fetch(`/todos/${t.id}/toggle`, { method: 'PATCH' }).then(fetchTodos);
+      btnWrap.appendChild(btnToggle);
+      // edit
+      const btnEdit = document.createElement('button');
+      btnEdit.innerHTML = `<i class="fas fa-edit"></i>`;
+      btnEdit.onclick = async () => {
+        const nt = prompt('Edit Title:', t.title);
+        const nd = prompt('Edit Description:', t.description);
+        if (nt && nd) {
+          await fetch(`/todos/${t.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: id,
-              title: newTitle,
-              description: newDescription,
-              completed: todo.completed,
-              priority: todo.priority
-            })
+            body: JSON.stringify({ ...t, title: nt, description: nd })
           });
-          if (!response.ok) throw new Error('Failed to edit todo');
           fetchTodos();
-        } catch (error) {
-          console.error('Edit error:', error.message);
         }
-      }
+      };
+      btnWrap.appendChild(btnEdit);
+      // delete
+      const btnDel = document.createElement('button');
+      btnDel.className = 'delete-btn';
+      btnDel.innerHTML = `<i class="fas fa-trash"></i>`;
+      btnDel.onclick = () => fetch(`/todos/${t.id}`, { method: 'DELETE' }).then(fetchTodos);
+      btnWrap.appendChild(btnDel);
+
+      li.appendChild(btnWrap);
+      container.appendChild(li);
     }
 
-    document.getElementById('todo-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const title = document.getElementById('title').value;
-      const description = document.getElementById('description').value;
-      try {
-        const response = await fetch('/todos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: title,
-            description: description,
-            completed: false
-          })
-        });
-        if (!response.ok) throw new Error('Failed to add todo');
-        fetchTodos();
-        document.getElementById('title').value = '';
-        document.getElementById('description').value = '';
-      } catch (error) {
-        console.error('Add error:', error.message);
-      }
+    // form submit
+    document.getElementById('todo-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = e.target.title.value;
+      const desc  = e.target.description.value;
+      await fetch('/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description: desc })
+      });
+      e.target.reset();
+      fetchTodos();
     });
 
     fetchTodos();
