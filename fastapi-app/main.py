@@ -6,8 +6,12 @@ import uuid
 import json
 import os
 from filelock import FileLock
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
+
+# Prometheus 메트릭스 엔드포인트 (/metrics)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 # To-Do 항목 모델
 class TodoItem(BaseModel):
