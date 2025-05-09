@@ -48,6 +48,22 @@ services:
     ports:
       - "9100:9100"
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8181:8181"
+    command:
+      - "--port=8181"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+
 volumes:
     sonarqube_conf:
     sonarqube_data:
