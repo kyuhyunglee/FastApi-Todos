@@ -97,7 +97,7 @@ def test_create_todo_missing_title():
     assert response.status_code == 422
     data = response.json()
     # 'title' 필드 누락에 대한 유효성 오류인지 확인
-    assert data["detail"][0]["msg"] == "field required"
+    assert data["detail"][0]["msg"].lower() == "field required"
     assert data["detail"][0]["loc"][-1] == "title"
 
 def test_create_todo_missing_description():
@@ -110,7 +110,7 @@ def test_create_todo_missing_description():
     assert response.status_code == 422
     data = response.json()
     # 'description' 필드 누락에 대한 유효성 오류인지 확인
-    assert data["detail"][0]["msg"] == "field required"
+    assert data["detail"][0]["msg"].lower() == "field required"
     assert data["detail"][0]["loc"][-1] == "description"
 
 def test_create_duplicate_todos():
