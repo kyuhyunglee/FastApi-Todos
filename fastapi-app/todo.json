@@ -3,7 +3,7 @@
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "Sample Task",
         "description": "Example description",
-        "completed": false,
+        "completed": true,
         "priority": 1.0
     },
     {

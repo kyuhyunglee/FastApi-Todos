@@ -1,180 +1,197 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>To-Do List</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    integrity="sha512-…"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+  <title>To-Do App</title>
+  <!-- FontAwesome for icons -->
+  <script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
   <style>
-    /* (생략) 기존 스타일 그대로 */
+    /* 전체 페이지 스타일 */
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .hint {
+      margin-bottom: 15px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      text-align: center;
+    }
+
+    /* 두 칼럼 레이아웃 */
+    .board {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .column {
+      flex: 1 1 45%;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-width: 280px;
+    }
+    .column-header {
+      background: #3498db;
+      color: #fff;
+      padding: 10px;
+      border-radius: 3px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #done-column .column-header {
+      background: #2ecc71;
+    }
+
+    /* 새 항목 추가 영역 */
+    .add-task {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .add-task input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 3px 0 0 3px;
+    }
+    .add-task button {
+      padding: 8px 12px;
+      border: 1px solid #3498db;
+      background: #3498db;
+      color: #fff;
+      font-size: 1em;
+      border-radius: 0 3px 3px 0;
+      cursor: pointer;
+    }
+    .add-task button:hover {
+      background: #2980b9;
+    }
+
+    /* 할 일 카드 스타일 */
+    .task-list {
+      list-style: none;
+      padding: 0;
+      min-height: 50px;
+    }
+    .task {
+      background: #fafafa;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      cursor: move;
+      transition: background 0.2s, transform 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .task:hover {
+      background: #f0f8ff;
+      transform: scale(1.02);
+    }
+
+    /* 반응형: 화면 작아지면 세로 스택 */
+    @media (max-width: 600px) {
+      .board {
+        flex-direction: column;
+      }
+      .column {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>Uncompleted Tasks</h2>
-    <ul id="uncompleted-list"></ul>
-    <form id="todo-form">
-      <input type="text" id="title" placeholder="Title" required />
-      <input type="text" id="description" placeholder="Description" required />
-      <button type="submit">Add To-Do</button>
-    </form>
-  </div>
 
-  <div class="box">
-    <h2>Completed Tasks</h2>
-    <ul id="completed-list"></ul>
+  <h1>나의 할 일 목록</h1>
+  <p class="hint">💡 Tip: 항목을 드래그해서 왼쪽/오른쪽으로 옮기면 완료 상태를 변경할 수 있습니다.</p>
+
+  <div class="board">
+    <!-- To Do 칼럼 -->
+    <div class="column" id="todo-column">
+      <div class="column-header">
+        <h2>해야 할 일 (To Do)</h2>
+      </div>
+      <div class="add-task">
+        <input type="text" id="new-task" placeholder="새 할 일을 입력하세요..." />
+        <button id="add-btn"><i class="fas fa-plus"></i></button>
+      </div>
+      <ul class="task-list" id="todoList" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
+    </div>
+
+    <!-- Done 칼럼 -->
+    <div class="column" id="done-column">
+      <div class="column-header">
+        <h2>마친 일 (Done)</h2>
+      </div>
+      <ul class="task-list" id="doneList" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
+    </div>
   </div>
 
   <script>
-    let todosData = [];
-    let draggingItem = null;
-
-    // drag & drop helpers
-    function isBefore(el1, el2) {
-      if (el2.parentNode === el1.parentNode) {
-        for (let cur = el1.previousSibling; cur; cur = cur.previousSibling) {
-          if (cur === el2) return true;
-        }
-      }
-      return false;
+    // 드래그 앤 드롭 핸들러
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const task = document.getElementById(data);
+      const list = ev.target.closest('.task-list');
+      if (list) list.appendChild(task);
     }
 
-    function dragStart(e) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', '');
-      draggingItem = e.currentTarget;
-    }
-
-    function dragOver(e) {
-      e.preventDefault();
-      const tgt = e.currentTarget;
-      if (tgt === draggingItem) return;
-      if (isBefore(draggingItem, tgt)) {
-        tgt.parentNode.insertBefore(draggingItem, tgt);
-      } else {
-        tgt.parentNode.insertBefore(draggingItem, tgt.nextSibling);
-      }
-    }
-
-    async function dragEnd(e) {
-      const item = e.currentTarget;
-      const prev = item.previousSibling, next = item.nextSibling;
-      let newP;
-      if (prev) {
-        newP = next
-          ? (parseFloat(prev.dataset.priority) + parseFloat(next.dataset.priority)) / 2
-          : parseFloat(prev.dataset.priority) + 1;
-      } else {
-        newP = next
-          ? parseFloat(next.dataset.priority) / 2
-          : parseFloat(item.dataset.priority) || 1;
-      }
-
-      if (newP !== parseFloat(item.dataset.priority)) {
-        await fetch(`/todos/${item.dataset.id}/priority`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ priority: newP })
-        });
-      }
-      fetchTodos();
-      draggingItem = null;
-    }
-
-    // 기본 CRUD
-    async function fetchTodos() {
-      const res = await fetch('/todos');
-      todosData = await res.json();
-      renderTodos(todosData);
-    }
-
-    function renderTodos(list) {
-      const uList = document.getElementById('uncompleted-list');
-      const cList = document.getElementById('completed-list');
-      uList.innerHTML = ''; cList.innerHTML = '';
-
-      const uncompleted = list.filter(t => !t.completed)
-                              .sort((a,b) => a.priority - b.priority);
-      const completed   = list.filter(t => t.completed);
-
-      uncompleted.forEach(t => addItem(uList, t));
-      completed.forEach(t => addItem(cList, t));
-    }
-
-    function addItem(container, t) {
+    // 새 할 일 추가
+    document.getElementById('add-btn').onclick = () => {
+      const input = document.getElementById('new-task');
+      const text = input.value.trim();
+      if (!text) return;
+      const id = 'task' + Date.now();
       const li = document.createElement('li');
-      li.className = 'todo-item' + (t.completed ? ' completed' : '');
-      li.dataset.id = t.id;
-      li.dataset.priority = t.priority;
-      if (!t.completed) {
-        li.setAttribute('draggable', 'true');
-        li.addEventListener('dragstart', dragStart);
-        li.addEventListener('dragover',  dragOver);
-        li.addEventListener('dragend',   dragEnd);
-      }
-      // 안전하게 textContent 사용
-      const span = document.createElement('span');
-      span.textContent = `${t.title}: ${t.description}`;
-      li.appendChild(span);
+      li.className = 'task';
+      li.id = id;
+      li.draggable = true;
+      li.ondragstart = drag;
+      li.innerHTML = `
+        <span>${text}</span>
+        <div>
+          <button onclick="markDone('${id}')"><i class="fas fa-check"></i></button>
+          <button onclick="deleteTask('${id}')"><i class="fas fa-trash"></i></button>
+        </div>`;
+      document.getElementById('todoList').appendChild(li);
+      input.value = '';
+    };
 
-      const btnWrap = document.createElement('div');
-      // toggle
-      const btnToggle = document.createElement('button');
-      btnToggle.innerHTML = `<i class="fas ${t.completed ? 'fa-rotate-left' : 'fa-check'}"></i>`;
-      btnToggle.onclick = () => fetch(`/todos/${t.id}/toggle`, { method: 'PATCH' }).then(fetchTodos);
-      btnWrap.appendChild(btnToggle);
-      // edit
-      const btnEdit = document.createElement('button');
-      btnEdit.innerHTML = `<i class="fas fa-edit"></i>`;
-      btnEdit.onclick = async () => {
-        const nt = prompt('Edit Title:', t.title);
-        const nd = prompt('Edit Description:', t.description);
-        if (nt && nd) {
-          await fetch(`/todos/${t.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...t, title: nt, description: nd })
-          });
-          fetchTodos();
-        }
-      };
-      btnWrap.appendChild(btnEdit);
-      // delete
-      const btnDel = document.createElement('button');
-      btnDel.className = 'delete-btn';
-      btnDel.innerHTML = `<i class="fas fa-trash"></i>`;
-      btnDel.onclick = () => fetch(`/todos/${t.id}`, { method: 'DELETE' }).then(fetchTodos);
-      btnWrap.appendChild(btnDel);
-
-      li.appendChild(btnWrap);
-      container.appendChild(li);
+    // 완료 표시
+    function markDone(id) {
+      const el = document.getElementById(id);
+      document.getElementById('doneList').appendChild(el);
     }
-
-    // form submit
-    document.getElementById('todo-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const title = e.target.title.value;
-      const desc  = e.target.description.value;
-      await fetch('/todos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description: desc })
-      });
-      e.target.reset();
-      fetchTodos();
-    });
-
-    fetchTodos();
+    // 삭제
+    function deleteTask(id) {
+      const el = document.getElementById(id);
+      el && el.remove();
+    }
   </script>
+
 </body>
 </html>
-
-
 
