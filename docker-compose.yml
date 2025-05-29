@@ -76,7 +76,7 @@ services:
     ports:
       - "7100:9100"
     networks:
-      -loadtest-net
+      - loadtest-net
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
